@@ -1,0 +1,18 @@
+.product-card {
+  border: 1px rgb(239, 239, 239) solid;
+  max-width: 35rem;
+  margin: 0 auto;
+}
+
+.heart {
+  font-size: 200%;
+  color: rgb(220, 11, 67);
+}
+
+.no-heart {
+  font-size: 200%;
+  color: rgb(207, 205, 205);
+}
+.rating {
+  color: gold;
+}
