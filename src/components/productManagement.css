@@ -16,3 +16,26 @@
 .rating {
   color: gold;
 }
+.review-list {
+  list-style-type: none;
+  background-color: rgb(247, 244, 240);
+}
+.review-item {
+  display: flex;
+}
+input {
+  padding: 0.5rem;
+  margin: 0.5rem 0.2rem;
+  border-radius: 10px;
+  border: solid 1px coral;
+}
+button {
+  padding: 0.5rem;
+  margin: 0.5rem 0.2rem;
+  border-radius: 10px;
+  background-color: rgb(247, 244, 240);
+  border: solid coral 1px;
+}
+button:hover {
+  background-color: rgb(251, 233, 227);
+}

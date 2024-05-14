@@ -7,13 +7,16 @@ export default function ProductManagement() {
   });
 
   const [newProductName, setNewProductName] = useState("");
-  const [newProductPrice, setNewProductPrice] = useState(null);
-  const [newProductRating, setNewProductRating] = useState(null);
+  const [newProductPrice, setNewProductPrice] = useState("");
+  const [newProductRating, setNewProductRating] = useState("");
 
   const [editProductId, setEditProductId] = useState(null);
   const [editProductName, setEditProductName] = useState("");
-  const [editProductPrice, setEditProductPrice] = useState(null);
-  const [editProductRating, setEditProductRating] = useState(null);
+  const [editProductPrice, setEditProductPrice] = useState("");
+  const [editProductRating, setEditProductRating] = useState("");
+  const [editReviewContent, setEditReviewContent] = useState("");
+  const [editReviewRating, setEditReviewRating] = useState("");
+  const [editReviewId, setEditReviewId] = useState(null);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [filterRating, setFilterRating] = useState(null);
@@ -34,6 +37,10 @@ export default function ProductManagement() {
   }
 
   function addProduct() {
+    const ratingValue = parseInt(newProductRating);
+    if (isNaN(ratingValue) || ratingValue < 1 || ratingValue > 5) {
+      alert("Rating must be a number between 1 and 5");
+    }
     const newProduct = {
       id: Date.now(),
       name: newProductName,
@@ -44,8 +51,8 @@ export default function ProductManagement() {
     };
     setProducts([...products, newProduct]);
     setNewProductName("");
-    setNewProductPrice(null);
-    setNewProductRating(null);
+    setNewProductPrice("");
+    setNewProductRating("");
   }
   function deleteProduct(index) {
     const newProducts = products.filter((product) => product.id !== index);
@@ -60,6 +67,11 @@ export default function ProductManagement() {
   }
 
   function saveEditedProduct() {
+    const ratingValue = parseInt(editProductRating);
+    if (isNaN(ratingValue) || ratingValue < 1 || ratingValue > 5) {
+      alert("Rating must be a number between 1 and 5");
+      return;
+    }
     const updatedProducts = products.map((product) =>
       product.id === editProductId
         ? {
@@ -80,38 +92,99 @@ export default function ProductManagement() {
     );
     setProducts(updatedProducts);
   }
-
+  function calculateAverageRating(reviews) {
+    if (reviews.length === 0) return 0;
+    const totalRating = reviews.reduce((acc, review) => acc + review.rating, 0);
+    return totalRating / reviews.length;
+  }
   function addReview(productId, reviewContent, rating) {
-    const updatedProducts = products.map((product) =>
-      product.id === productId
-        ? {
-            ...product,
-            reviews: [
-              ...product.reviews,
-              {content: reviewContent, rating: rating},
-            ],
-          }
-        : product
-    );
+    const ratingValue = parseInt(rating);
+    if (isNaN(ratingValue) || ratingValue < 1 || ratingValue > 5) {
+      alert("Rating must be a number between 1 and 5");
+      return;
+    }
+    const updatedProducts = products.map((product) => {
+      if (product.id === productId) {
+        const updatedReviews = [
+          ...product.reviews,
+          {id: Date.now(), content: reviewContent, rating: rating},
+        ];
+        // const averageRating = calculateAverageRating(updatedReviews);
+        return {...product, reviews: updatedReviews, rating: ratingValue};
+      }
+      return product;
+    });
+    setProducts(updatedProducts);
+  }
+  function deleteReview(productId, reviewId) {
+    const updatedProducts = products.map((product) => {
+      if (product.id === productId) {
+        const updatedReviews = product.reviews.filter(
+          (review) => review.id !== reviewId
+        );
+        const averageRating = calculateAverageRating(updatedReviews);
+        return {...product, reviews: updatedReviews, rating: averageRating};
+      }
+      return product;
+    });
+    setProducts(updatedProducts);
+  }
+  function editReview(productId, reviewId) {
+    const updatedProducts = products.map((product) => {
+      if (product.id === productId) {
+        const reviewToEdit = product.reviews.find(
+          (review) => review.id === reviewId
+        );
+        setEditReviewId(reviewToEdit.id);
+        setEditReviewContent(reviewToEdit.content);
+        setEditReviewRating(reviewToEdit.rating);
+      }
+      return product;
+    });
+    setProducts(updatedProducts);
+  }
+  function saveEditedReview(productId, reviewId) {
+    const ratingValue = parseInt(editReviewRating);
+    if (isNaN(ratingValue) || ratingValue < 1 || ratingValue > 5) {
+      alert("Rating must be a number between 1 and 5");
+      return;
+    }
+    const updatedProducts = products.map((product) => {
+      if (product.id === productId) {
+        const updatedReviews = product.reviews.map((review) =>
+          review.id === reviewId
+            ? {...review, content: editReviewContent, rating: ratingValue}
+            : review
+        );
+        const averageRating = calculateAverageRating(updatedReviews);
+        return {...product, reviews: updatedReviews, rating: averageRating};
+      }
+      return product;
+    });
+    setProducts(updatedProducts);
+    setEditReviewId(null);
   }
   return (
     <div className="product-management">
       <input
         type="text"
+        value={newProductName}
         placeholder="Product name"
         onChange={handleNewProductName}
       />
       <input
         type="number"
+        value={newProductPrice}
         placeholder="Product price"
         onChange={handleNewProductPrice}
       />
       <input
         type="number"
+        value={newProductRating}
         placeholder="Product rating"
-        // min="1"
-        // max="5 "
-        // step="1"
+        min="1"
+        max="5 "
+        step="1"
         onChange={handleNewProductRating}
       />
       <button className="product-add-btn" onClick={addProduct}>
@@ -139,7 +212,7 @@ export default function ProductManagement() {
           </span>
           <button onClick={() => deleteProduct(product.id)}>Delete</button>
           <button onClick={() => editProduct(product.id)}>Edit</button>
-          <button onClick={() => addReview()}>Add review</button>
+
           {editProductId === product.id && (
             <div className="edit-form">
               <input
@@ -161,6 +234,70 @@ export default function ProductManagement() {
                 placeholder="Edit product rating"
               />
               <button onClick={saveEditedProduct}>Save</button>
+            </div>
+          )}
+          <form
+            className="review-form"
+            onSubmit={(e) => {
+              e.preventDefault();
+              const reviewContent = e.target.review.value;
+              const rating = parseInt(e.target.rating.value);
+              addReview(product.id, reviewContent, rating);
+              e.target.reset();
+            }}>
+            <input
+              type="text"
+              name="review"
+              placeholder="Write your review here"
+              required
+            />
+            <input type="number" name="rating" placeholder="Rating" required />
+            <button type="submit">Add review</button>
+          </form>
+          <ul className="review-list">
+            {product.reviews.map((review) => (
+              <li key={review.id} className="review-item">
+                <p>
+                  {[...Array(parseInt(review.rating))].map((_, index) => (
+                    <span key={index} className="rating">
+                      &#9733;
+                    </span>
+                  ))}
+                </p>
+                <p>{review.content}</p>
+
+                <button
+                  onClick={() => deleteReview(product.id, review.id)}
+                  className="button button-delete">
+                  Delete
+                </button>
+                <button
+                  onClick={() => editReview(product.id, review.id)}
+                  className="button button-edit">
+                  Edit
+                </button>
+              </li>
+            ))}
+          </ul>
+          {editReviewId && (
+            <div className="edit-review-form">
+              <input
+                type="text"
+                value={editReviewContent}
+                onChange={(e) => setEditReviewContent(e.target.value)}
+                placeholder="Edit review content"
+              />
+              <input
+                type="number"
+                value={editReviewRating}
+                onChange={(e) => setEditReviewRating(e.target.value)}
+                placeholder="Edit review rating"
+              />
+              <button
+                className="button button-edit"
+                onClick={() => saveEditedReview(product.id, editReviewId)}>
+                Save
+              </button>
             </div>
           )}
         </div>
